@@ -19,7 +19,7 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 
 
-public class audioTest extends AppCompatActivity{
+public class Audio2key extends AppCompatActivity{
 
     //private static final String PERMISSION_AUDIO="android.permission.RECORD_AUDIO";
 
@@ -82,50 +82,6 @@ public class audioTest extends AppCompatActivity{
     }
 
 
-//
-//    private class RecordAudioTask extends AsyncTask<Void, double[], Void> {
-//
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//            try {
-//                int bufferSize = AudioRecord.getMinBufferSize(frequency,
-//                        channelConfig, audioFormat);
-//                Log.v("bufSize", String.valueOf(bufferSize));
-//                AudioRecord audioRecord = new AudioRecord(
-//                        MediaRecorder.AudioSource.MIC, frequency,
-//                        channelConfig, audioFormat, bufferSize);
-//
-//                short[] audioBuffer = new short[blockSize];
-//                double[] toTrans = new double[blockSize];
-//
-//                audioRecord.startRecording();
-//
-//                while (started) {
-//                    int result = audioRecord.read(audioBuffer, 0, blockSize);
-//
-//                    for (int i = 0; i < blockSize && i < result; i++) {
-//                        toTrans[i] = (double) audioBuffer[i] / Short.MAX_VALUE;
-//                    }
-//                    fftTrans.ft(toTrans);
-//                    publishProgress(toTrans);
-//                }
-//                audioRecord.stop();
-//            } catch (Throwable t) {
-//                Log.e("AudioRecord", "Recording failed");
-//            }
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onProgressUpdate(double[]... values) {
-//
-//            for (int i = 0; i < values[0].length; i++) {
-//            }
-//            //System.out.println("freq");
-//        }
-//    }
-//
-
     public class Detect extends AsyncTask<Void, double[], Void> {
         private  int counter = 0;//This counter is used to count the number of short[] got from listener.
         private  int[] det = new int[3];//This is an int array to record recent average value for comparision.
@@ -141,7 +97,6 @@ public class audioTest extends AppCompatActivity{
                 AudioRecord audioRecord = new AudioRecord(
                         MediaRecorder.AudioSource.MIC, frequency,
                         channelConfig, audioFormat, bufferSize);
-                //System.out.println(bufferSize);
                 short[] audioBuffer = new short[blockSize];
                 double[] toTrans = new double[blockSize];
                 audioRecord.startRecording();
@@ -242,8 +197,6 @@ public class audioTest extends AppCompatActivity{
             //printVector(value);//打印出频谱
             int upper_bound = 1000*2*blockSize/frequency; //候选频率的上界
             int lower_bound = 100*2*blockSize/frequency; //下界
-//            System.out.println(upper_bound);
-//            System.out.println(lower_bound);
             for (int i = 0; i < value.length/2; i++) {//只画频谱左半部分（左右基本对称）
                 x = i*256/(blockSize/2);
                 downy = (int) (150 - (value[i] * 8));
@@ -257,12 +210,13 @@ public class audioTest extends AppCompatActivity{
                 }
             }
             max_frequency = find_max(candidate); //计算按键频率
-            //显示频谱
-            imgView.invalidate();
             max_frequency = max_frequency*frequency/blockSize/2;
             key = log2(max_frequency);
             kk = (int)(key+0.5); //kk 是key取整后的按键
-            //kk = delete_black_key(key);
+            //kk = delete_black_key(key);  //不考虑黑键
+
+            //显示频谱
+            imgView.invalidate();
             Log.d("Frequency",String.valueOf(max_frequency));
             tv.setText(String.valueOf(max_frequency)+"Hz");
             key_view.setText(String.valueOf(key)+"  Key:"+String.valueOf(kk));
@@ -280,7 +234,7 @@ public class audioTest extends AppCompatActivity{
             return value;
         }
 
-        public int delete_black_key(double key){//不显示
+        public int delete_black_key(double key){//用于检测是否为黑键，并且不显示黑键
             int kk = (int)(key+0.5); //kk 是key取整后的按键
             int black = kk%12;
             if (black == 1 || black == 4 || black == 6 || black ==9 || black == 11 ){

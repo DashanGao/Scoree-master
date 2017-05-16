@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
 
 
-    tools:context="com.sustech.se.scoree.audioTest">
+    tools:context="com.sustech.se.scoree.Audio2key">
 
     <Button
         android:text="Start"
