@@ -1,66 +1,41 @@
 package com.sustech.se.scoree;
 
-import android.widget.Toast;
+import android.util.Log;
+import com.sustech.se.scoree.fftpack.RealDoubleFFT;
+
 
 /**
  * Created by David GAO on 2017/4/20.
  */
 
-public class Detector implements Runnable {
-    public volatile boolean exit = false;
-    private static int counter = 0;//This counter is used to count the number of short[] got from listener.
-    private static int[] det = new int[3];//This is an int array to record recent average value for comparision.
-    private static int ave = 0;//average data
-    private static int cun = 0;//counter of det
-    private static int loop_cun = 0;
-    private static int baseline = 0;
-    private static int baseline_cun = 0;
-    long startTime = System.nanoTime();
-    private Data gData = null;
-    private Decoder decoder = null;
+public class Detector{
+    private Data data = Data.getInstance();
+    RealDoubleFFT fftTrans;
 
-    public Detector(Data data) {
-        gData = data;
-        decoder = new Decoder(data);
+    Detector(){
+        fftTrans = new RealDoubleFFT(data.getBlockSize());
     }
 
-    @Override
-    public void run() {
-        detect();
-    }
-
-    public void detect() {
-        short[] data;
-        System.out.print(gData.poll());
-        while (!exit) {
-            do {
-                data = gData.poll();
-            } while (data == null);
-            ave = average(data);
-            det[loop_cun % 3] = ave;
-            loop_cun++;
-            String a = null;
-            //                 if (ave > 1.21 * det[(loop_cun+1 ) % 3]) {
-
-
-            if (ave > 5 * det[(loop_cun + 1) % 3]) {
-                if (counter > 3) {
-                    long time = System.nanoTime() - startTime;
-                    startTime = System.nanoTime();
-                    // System.out.println("Key press detected, #" + cun + " time interval: " + (double) time / 1000000000 + " second\t");
-
-                    //Here invoke decoder.
-                   // double frequency = decoder.decode(data, gData);
-                    System.out.println(cun + "  key press detected, frequency is: " +  "  intervel: " + (double) time / 1000000000 + " s\t");
-                    cun++;
-                }
-                counter = 0;
-            } else {
-                counter++;
+    public boolean detect(){
+    int result = data.audioRecord.read(data.getAudioBuffer(), 0, data.getBlockSize());
+    Log.d("result",String.valueOf(result));
+    data.setAve(average(data.getAudioBuffer()));
+    data.det[data.loop_cun % 3] = data.getAve();
+    data.loop_cun++;
+    if(data.getAve() > 3 *data.det[(data.loop_cun + 1)%3]){// 至少比上上个信号强5倍
+        if(data.getCounter() >3){ //与上一个按键至少间隔3个采样周期
+            for (int i = 0; i < data.getBlockSize() && i < result; i++) {
+                data.freq_vct[i] = (double) data.getAudioBuffer()[i] / Short.MAX_VALUE;
             }
+            fftTrans.ft(data.freq_vct);
+            return true;
         }
-        //ap.play(getAudioData(),0,getAudioData().length);
-    }
+        data.setCounter(0);
+    }else data.counter ++;
+    return false;
+
+}
+
 
     public int average(short[] d) {
         long tmp = 0;
@@ -74,5 +49,6 @@ public class Detector implements Runnable {
         tmp /= d.length;
         return (int) tmp;
     }
+
 
 }

@@ -16,18 +16,6 @@
         android:id="@+id/audioButton"/>
 
     <TextView
-        android:text="data"
-        android:gravity="center_horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/data"/>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="153dp"
-        android:id = "@+id/imgView"/>
-
-    <TextView
         android:text="key"
         android:gravity="center_horizontal"
         android:layout_width="match_parent"
